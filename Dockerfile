@@ -13,4 +13,6 @@ ADD opt/qnib/zookeeper/bin/start.sh /opt/qnib/zookeeper/bin/
 ENV PATH=/opt/zookeeper/bin:${PATH}
 RUN echo "tail -f /var/log/supervisor/zookeeper.log" >> /root/.bash_history && \
     echo "cat /opt/zookeeper/conf/zoo.cfg" >> /root/.bash_history
-ADD opt/zookeeper/conf/zoo.cfg /opt/zookeeper/conf/
+COPY opt/zookeeper/conf/zoo.cfg /opt/zookeeper/conf/
+COPY /opt/qnib/zookeeper/bin/start.sh /opt/qnib/zookeeper/bin/
+CMD ["/opt/qnib/zookeeper/bin/start.sh"]
