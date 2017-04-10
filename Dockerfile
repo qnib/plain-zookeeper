@@ -33,16 +33,12 @@ RUN set -x \
     && rm -fr "$GNUPGHOME" "$DISTRO_NAME.tar.gz" "$DISTRO_NAME.tar.gz.asc" \
     && apk del .build-deps
 
-#COPY opt/zookeeper/conf/zoo.cfg /opt/zookeeper/conf/
-#COPY /opt/qnib/zookeeper/bin/start.sh /opt/qnib/zookeeper/bin/
-#CMD ["/opt/qnib/zookeeper/bin/start.sh"]
-
 WORKDIR $DISTRO_NAME
 VOLUME ["$ZOO_DATA_DIR", "$ZOO_DATA_LOG_DIR"]
 
 EXPOSE $ZOO_PORT 2888 3888
 
+COPY opt/zookeeper/conf/zoo.cfg /config/
 ENV PATH=$PATH:/$DISTRO_NAME/bin \
     ZOOCFGDIR=$ZOO_CONF_DIR
-ENTRYPOINT ["/docker-entrypoint.sh"]
 CMD ["zkServer.sh", "start-foreground"]
