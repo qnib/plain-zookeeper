@@ -1,18 +1,48 @@
-FROM qnib/alplain-jre8
+FROM qnib/alplain-openjre8
 
-VOLUME ["/data/zookeeper"]
-ARG ZK_VER=3.4.8
-ARG ZK_URL=http://apache.claz.org/zookeeper
-ENV PATH=/opt/zookeeper/bin:${PATH}
+ENV PATH=/opt/zookeeper/bin:${PATH} \
+    ZOO_USER=zookeeper \
+    ZOO_CONF_DIR=/conf \
+    ZOO_DATA_DIR=/data \
+    ZOO_DATA_LOG_DIR=/datalog \
+    ZOO_PORT=2181 \
+    ZOO_TICK_TIME=2000 \
+    ZOO_INIT_LIMIT=5 \
+    ZOO_SYNC_LIMIT=2
 
-RUN apk add --update curl \
- && curl -fsL ${ZK_URL}/zookeeper-${ZK_VER}/zookeeper-${ZK_VER}.tar.gz | tar xzf - -C /opt \
- && mv /opt/zookeeper-${ZK_VER} /opt/zookeeper \
- && rm -rf /tmp/* /var/cache/apk/*
-ADD opt/qnib/zookeeper/bin/start.sh /opt/qnib/zookeeper/bin/
-ENV PATH=/opt/zookeeper/bin:${PATH}
-RUN echo "tail -f /var/log/supervisor/zookeeper.log" >> /root/.bash_history && \
-    echo "cat /opt/zookeeper/conf/zoo.cfg" >> /root/.bash_history
-COPY opt/zookeeper/conf/zoo.cfg /opt/zookeeper/conf/
-COPY /opt/qnib/zookeeper/bin/start.sh /opt/qnib/zookeeper/bin/
-CMD ["/opt/qnib/zookeeper/bin/start.sh"]
+# Add a user and make dirs
+RUN set -x \
+    && adduser -D "$ZOO_USER" \
+    && mkdir -p "$ZOO_DATA_LOG_DIR" "$ZOO_DATA_DIR" "$ZOO_CONF_DIR" \
+    && chown "$ZOO_USER:$ZOO_USER" "$ZOO_DATA_LOG_DIR" "$ZOO_DATA_DIR" "$ZOO_CONF_DIR"
+
+ARG GPG_KEY=C823E3E5B12AF29C67F81976F5CECB3CB5E9BD2D
+ARG DISTRO_NAME=zookeeper-3.4.10
+
+# Download Apache Zookeeper, verify its PGP signature, untar and clean up
+RUN set -x \
+    && apk add --no-cache --virtual .build-deps \
+        gnupg \
+    && wget -q "http://www.apache.org/dist/zookeeper/$DISTRO_NAME/$DISTRO_NAME.tar.gz" \
+    && wget -q "http://www.apache.org/dist/zookeeper/$DISTRO_NAME/$DISTRO_NAME.tar.gz.asc" \
+    && export GNUPGHOME="$(mktemp -d)" \
+    && gpg --keyserver ha.pool.sks-keyservers.net --recv-key "$GPG_KEY" \
+    && gpg --batch --verify "$DISTRO_NAME.tar.gz.asc" "$DISTRO_NAME.tar.gz" \
+    && tar -xzf "$DISTRO_NAME.tar.gz" \
+    && mv "$DISTRO_NAME/conf/"* "$ZOO_CONF_DIR" \
+    && rm -fr "$GNUPGHOME" "$DISTRO_NAME.tar.gz" "$DISTRO_NAME.tar.gz.asc" \
+    && apk del .build-deps
+
+#COPY opt/zookeeper/conf/zoo.cfg /opt/zookeeper/conf/
+#COPY /opt/qnib/zookeeper/bin/start.sh /opt/qnib/zookeeper/bin/
+#CMD ["/opt/qnib/zookeeper/bin/start.sh"]
+
+WORKDIR $DISTRO_NAME
+VOLUME ["$ZOO_DATA_DIR", "$ZOO_DATA_LOG_DIR"]
+
+EXPOSE $ZOO_PORT 2888 3888
+
+ENV PATH=$PATH:/$DISTRO_NAME/bin \
+    ZOOCFGDIR=$ZOO_CONF_DIR
+ENTRYPOINT ["/docker-entrypoint.sh"]
+CMD ["zkServer.sh", "start-foreground"]
