@@ -1,6 +1,9 @@
-FROM qnib/alplain-openjre8
+ARG DOCKER_REGISTRY=docker.io
+FROM ${DOCKER_REGISTRY}/qnib/alplain-openjre8-prometheus
 
-ENV PATH=/opt/zookeeper/bin:${PATH} \
+ENV ENTRYPOINTS_DIR=/opt/qnib/entry \
+    PROMETHEUS_JMX_PROFILE=zookeeper \
+    PATH=/opt/zookeeper/bin:${PATH} \
     ZOO_USER=zookeeper \
     ZOO_CONF_DIR=/conf \
     ZOO_DATA_DIR=/data \
@@ -9,7 +12,7 @@ ENV PATH=/opt/zookeeper/bin:${PATH} \
     ZOO_TICK_TIME=2000 \
     ZOO_INIT_LIMIT=5 \
     ZOO_SYNC_LIMIT=2
-
+COPY opt/prometheus/jmx/zookeeper.yml /opt/prometheus/jmx/
 # Add a user and make dirs
 RUN set -x \
     && adduser -D "$ZOO_USER" \
@@ -41,4 +44,5 @@ EXPOSE $ZOO_PORT 2888 3888
 COPY opt/zookeeper/conf/zoo.cfg /conf/
 ENV PATH=$PATH:/$DISTRO_NAME/bin \
     ZOOCFGDIR=$ZOO_CONF_DIR
-CMD ["zkServer.sh", "start-foreground"]
+COPY opt/qnib/zookeeper/bin/start.sh /opt/qnib/zookeeper/bin/
+CMD ["/opt/qnib/zookeeper/bin/start.sh"]

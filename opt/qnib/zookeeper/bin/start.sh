@@ -1,3 +1,5 @@
 #!/bin/bash
 
-/opt/zookeeper/bin/zkServer.sh start-foreground
+export JVMFLAGS=${EXTRA_ARGS}
+
+zkServer.sh start-foreground
