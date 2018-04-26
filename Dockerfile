@@ -1,5 +1,7 @@
 ARG DOCKER_REGISTRY=docker.io
-FROM ${DOCKER_REGISTRY}/qnib/alplain-openjre8-prometheus
+ARG DOCKER_IMG_TAG=":2018-04-25_0.3.0"
+ARG DOCKER_IMG_HASH="@sha256:bac2b14174d7908eb94f6b4d247ff765d0488397227a8a17e3ebeac6ce3d5d18"
+FROM ${DOCKER_REGISTRY}/qnib/alplain-openjre8-prometheus${DOCKER_IMG_TAG}${DOCKER_IMG_HASH}
 
 ENV ENTRYPOINTS_DIR=/opt/qnib/entry \
     PROMETHEUS_JMX_PROFILE=zookeeper \
@@ -19,21 +21,16 @@ RUN set -x \
     && mkdir -p "$ZOO_DATA_LOG_DIR" "$ZOO_DATA_DIR" "$ZOO_CONF_DIR" \
     && chown "$ZOO_USER:$ZOO_USER" "$ZOO_DATA_LOG_DIR" "$ZOO_DATA_DIR" "$ZOO_CONF_DIR"
 
-ARG GPG_KEY=C823E3E5B12AF29C67F81976F5CECB3CB5E9BD2D
-ARG DISTRO_NAME=zookeeper-3.4.10
+ARG GPG_KEY=8e2cc8784794e24df90fa1a9dbe6cd1695c79a44
+ARG DISTRO_NAME=zookeeper-3.4.12
+ARG DURL=http://www.apache.org/dist/zookeeper
 
 # Download Apache Zookeeper, verify its PGP signature, untar and clean up
-RUN set -x \
-    && apk add --no-cache --virtual .build-deps \
-        gnupg \
-    && wget -q "http://www.apache.org/dist/zookeeper/$DISTRO_NAME/$DISTRO_NAME.tar.gz" \
-    && wget -q "http://www.apache.org/dist/zookeeper/$DISTRO_NAME/$DISTRO_NAME.tar.gz.asc" \
-    && export GNUPGHOME="$(mktemp -d)" \
-    && gpg --keyserver ha.pool.sks-keyservers.net --recv-key "$GPG_KEY" \
-    && gpg --batch --verify "$DISTRO_NAME.tar.gz.asc" "$DISTRO_NAME.tar.gz" \
-    && tar -xzf "$DISTRO_NAME.tar.gz" \
-    && mv "$DISTRO_NAME/conf/"* "$ZOO_CONF_DIR" \
-    && rm -fr "$GNUPGHOME" "$DISTRO_NAME.tar.gz" "$DISTRO_NAME.tar.gz.asc" \
+RUN apk add --no-cache --virtual .build-deps gnupg \
+ && echo
+RUN echo \
+    && mkdir -p /opt/zookeeper/ \
+    && wget -qO - "${DURL}/$DISTRO_NAME/$DISTRO_NAME.tar.gz" |tar xfz - --strip-components=1 -C /opt/zookeeper/ \
     && apk del .build-deps
 
 WORKDIR $DISTRO_NAME
