@@ -1,5 +1,5 @@
 ARG DOCKER_REGISTRY=docker.io
-ARG DOCKER_IMG_TAG=":2018-04-25_0.3.0"
+ARG DOCKER_IMG_TAG=":2019-01-28.2"
 ARG DOCKER_IMG_HASH="@sha256:bac2b14174d7908eb94f6b4d247ff765d0488397227a8a17e3ebeac6ce3d5d18"
 FROM ${DOCKER_REGISTRY}/qnib/alplain-openjre8-prometheus${DOCKER_IMG_TAG}${DOCKER_IMG_HASH}
 
@@ -21,8 +21,7 @@ RUN set -x \
     && mkdir -p "$ZOO_DATA_LOG_DIR" "$ZOO_DATA_DIR" "$ZOO_CONF_DIR" \
     && chown "$ZOO_USER:$ZOO_USER" "$ZOO_DATA_LOG_DIR" "$ZOO_DATA_DIR" "$ZOO_CONF_DIR"
 
-ARG GPG_KEY=8e2cc8784794e24df90fa1a9dbe6cd1695c79a44
-ARG DISTRO_NAME=zookeeper-3.4.12
+ARG DISTRO_NAME=zookeeper-3.4.13
 ARG DURL=http://www.apache.org/dist/zookeeper
 
 # Download Apache Zookeeper, verify its PGP signature, untar and clean up
