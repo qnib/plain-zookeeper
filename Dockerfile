@@ -21,7 +21,7 @@ RUN set -x \
     && mkdir -p "$ZOO_DATA_LOG_DIR" "$ZOO_DATA_DIR" "$ZOO_CONF_DIR" \
     && chown "$ZOO_USER:$ZOO_USER" "$ZOO_DATA_LOG_DIR" "$ZOO_DATA_DIR" "$ZOO_CONF_DIR"
 
-ARG DISTRO_NAME=zookeeper-3.4.13
+ARG DISTRO_NAME=zookeeper-3.4.12
 ARG DURL=http://www.apache.org/dist/zookeeper
 
 # Download Apache Zookeeper, verify its PGP signature, untar and clean up

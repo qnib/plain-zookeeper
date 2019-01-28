@@ -1,0 +1,31 @@
+---
+version: 3.4.12
+name: zookeeper
+description: "Zookeeper stack"
+maintainers:
+- name: Christian Kniep
+  email: christian@qnib.org
+targets:
+  swarm: true
+  kubernetes: true
+
+---
+version: "3.6"
+services:
+  daemon:
+    image: qnib/plain-zookeeper:v3.4.12
+    ports:
+      - "2181:2181"
+    deploy:
+      resources:
+        # Only one master for now
+        replicas: 1
+        limits:
+          cpus: '1'
+          memory: 512M
+      update_config:
+        parallelism: 1
+        delay: 15s
+      restart_policy:
+        condition: on-failure
+---
