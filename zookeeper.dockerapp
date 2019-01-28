@@ -1,5 +1,5 @@
 ---
-version: 3.4.12
+version: 3.4.13
 name: zookeeper
 description: "Zookeeper stack"
 maintainers:
@@ -13,7 +13,7 @@ targets:
 version: "3.6"
 services:
   daemon:
-    image: qnib/plain-zookeeper:v3.4.12
+    image: qnib/plain-zookeeper:v3.4.13
     ports:
       - "2181:2181"
     deploy:
